@@ -12,6 +12,10 @@ type Props = {
   params: { slug?: string } | Promise<{ slug?: string }>;
 };
 
+export const metadata = {
+  title: "Yeezy 500 Blush",
+};
+
 export default async function ProductPage({ params }: Props) {
   const { slug } = await Promise.resolve(params);
 
