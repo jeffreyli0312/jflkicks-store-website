@@ -26,7 +26,7 @@ export default async function Home() {
       title,
       price,
       description,
-      image,
+      images,
       slug
     }
   `);
@@ -40,39 +40,49 @@ export default async function Home() {
         </h1>
 
         <ul className="space-y-4">
-          {products.map((p: any) => (
-            <Link
-              key={p._id}
-              href={`/product/${p.slug.current}`}
-              className="block"
-            >
-              <li className="flex gap-4 border-b pb-4 text-black dark:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition rounded-md p-2">
-                {p.image && (
-                  <Image
-                    src={urlFor(p.image).width(200).height(200).url()}
-                    alt={p.title}
-                    width={200}
-                    height={200}
-                    className="rounded-md object-cover"
-                  />
-                )}
+          {products.map((p: any) => {
+            const firstImage = p.images?.[0]; // ✅ get first image safely
+            const imgUrl = urlFor(firstImage)
+              .width(400)     // request 2x for sharpness on retina screens
+              .height(400)
+              .fit("crop")
+              .quality(90)    // higher quality (60–80 is default-ish; 90 is crisp)
+              .auto("format") // lets Sanity serve modern formats when possible
+              .url();
 
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium">{p.title}</span>
-
-                  {p.price && <span className="text-sm">${p.price}</span>}
-
-                  {p.description && (
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
-                      {p.description}
-                    </p>
+            return (
+              <Link
+                key={p._id}
+                href={`/product/${p.slug.current}`}
+                className="block"
+              >
+                <li className="flex gap-4 border-b pb-4 text-black dark:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition rounded-md p-2">
+                  {firstImage && (
+                    <Image
+                      src={imgUrl}
+                      alt={p.title}
+                      width={200}
+                      height={200}
+                      className="rounded-md object-cover"
+                      unoptimized
+                    />
                   )}
-                </div>
-              </li>
-            </Link>
 
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium">{p.title}</span>
 
-          ))}
+                    {p.price && <span className="text-sm">${p.price}</span>}
+
+                    {p.description && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                        {p.description}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              </Link>
+            );
+          })}
         </ul>
       </main>
     </div>

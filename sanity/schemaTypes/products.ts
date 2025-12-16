@@ -28,12 +28,18 @@ export const product = defineType({
     }),
 
     defineField({
-      name: 'image',
-      title: 'Image',
-      type: 'image',
-      options: { hotspot: true },
-      validation: (r) => r.required(),
+        name: 'images',
+        title: 'Images',
+        type: 'array',
+        of: [
+            {
+            type: 'image',
+            options: { hotspot: true },
+            },
+        ],
+        validation: (r) => r.required().min(1),
     }),
+
 
     defineField({
       name: 'description',
