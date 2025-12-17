@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: "JLFKicks Store",
+    default: "JLFKicks",
     template: "%s | JFLKicks",
   },
 };
