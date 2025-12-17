@@ -28,6 +28,22 @@ export const product = defineType({
     }),
 
     defineField({
+        name: 'hide',
+        title: 'Hide',
+        type: 'boolean',
+        initialValue: false,
+        description: 'Set true to hide this item from the storefront',
+    }),
+
+    defineField({
+        name: 'sold',
+        title: 'Sold',
+        type: 'boolean',
+        initialValue: false,
+        description: 'Set as sold on the website',
+    }),
+
+    defineField({
         name: 'images',
         title: 'Images',
         type: 'array',

@@ -21,10 +21,11 @@ export const revalidate = 30; // auto-refresh every 30s
 
 export default async function Home() {
   const products = await sanity.fetch(`
-    *[_type == "product"]{
+    *[_type == "product" && hide != true]{
       _id,
       title,
       price,
+      hide,
       description,
       images,
       slug
