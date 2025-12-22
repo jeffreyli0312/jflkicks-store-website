@@ -32,10 +32,10 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <main className="mx-auto w-full max-w-6xl py-20 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold mb-8 text-black dark:text-zinc-50">
+      <main className="mx-auto w-full max-w-6xl pt-15 pb-20 px-4 sm:px-6 lg:px-8">
+        {/* <h1 className="text-3xl font-semibold mb-8 text-black dark:text-zinc-50">
           Products
-        </h1>
+        </h1> */}
 
         {/* 2 columns on mobile, 3 columns on larger screens */}
         <ul className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">

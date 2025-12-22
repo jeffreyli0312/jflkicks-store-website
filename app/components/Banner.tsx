@@ -104,7 +104,9 @@ export default function Banner() {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-8 flex justify-center gap-16 text-lg md:text-xl font-semibold text-zinc-300">
+        <nav className="mt-8 flex justify-center gap-6 sm:gap-10 md:gap-16 text-lg sm:text-xl md:text-2xl font-semibold text-zinc-300">
+
+
           <Link
             href="/"
             className={`pb-3 transition ${isSneakers

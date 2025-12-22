@@ -26,8 +26,13 @@ export default function Footer() {
                         <ul className="space-y-2">
                             <li><Link href="/" className="hover:text-white">Search</Link></li>
                             <li><Link href="/policies" className="hover:text-white">FAQs</Link></li>
-                            <li><Link href="/About us" className="hover:text-white">About</Link></li>
-                            <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
+                            <li><Link href="/about" className="hover:text-white">About</Link></li>
+                            <li><a
+                                href="mailto:jeffreyli0312@gmail.com"
+                                className="hover:text-white"
+                            >
+                                Contact Us
+                            </a></li>
                         </ul>
                     </div>
 
@@ -57,7 +62,7 @@ export default function Footer() {
                 {/* Bottom bar */}
                 <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-zinc-800 pt-6 text-sm md:flex-row">
                     <p>© {new Date().getFullYear()} JFLKicks</p>
-                    <Link href="/terms" className="hover:text-white">
+                    <Link href="/policies" className="hover:text-white">
                         Terms and Policies
                     </Link>
                 </div>
