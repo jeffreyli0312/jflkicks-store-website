@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { createClient } from "@sanity/client";
 import Link from "next/link";
+import ScrollFadeIn from "../app/components/scrollFadeIn";
 
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -53,32 +54,34 @@ export default async function Home() {
 
             return (
               <li key={p._id} className="group">
-                <Link
-                  href={`/product/${p.slug.current}`}
-                  className="block rounded-lg p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-                >
-                  <div className="relative w-full overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900 aspect-[8/9]">
-                    {imgUrl && (
-                      <Image
-                        src={imgUrl}
-                        alt={p.title}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        unoptimized
-                      />
-                    )}
-                  </div>
+                <ScrollFadeIn>
+                  <Link
+                    href={`/product/${p.slug.current}`}
+                    className="block rounded-lg p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
+                  >
+                    <div className="relative w-full overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900 aspect-[8/9]">
+                      {imgUrl && (
+                        <Image
+                          src={imgUrl}
+                          alt={p.title}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 50vw, 33vw"
+                          unoptimized
+                        />
+                      )}
+                    </div>
 
-                  <div className="mt-3 text-black dark:text-zinc-50">
-                    <div className="font-medium line-clamp-1">{p.title}</div>
-                    {p.price != null && (
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        ${p.price}
-                      </div>
-                    )}
-                  </div>
-                </Link>
+                    <div className="mt-3 text-black dark:text-zinc-50">
+                      <div className="font-medium line-clamp-1">{p.title}</div>
+                      {p.price != null && (
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                          ${p.price}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </ScrollFadeIn>
               </li>
             );
           })}

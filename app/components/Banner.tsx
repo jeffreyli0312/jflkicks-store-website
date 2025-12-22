@@ -19,7 +19,7 @@ export default function Banner() {
   const desktopInputRef = useRef<HTMLInputElement | null>(null);
 
   const isSneakers = useMemo(
-    () => pathname === "/sneakers" || pathname.startsWith("/sneakers/"),
+    () => pathname === "/",
     [pathname]
   );
   const isAccessories = useMemo(
@@ -106,7 +106,7 @@ export default function Banner() {
         {/* Navigation */}
         <nav className="mt-8 flex justify-center gap-16 text-lg md:text-xl font-semibold text-zinc-300">
           <Link
-            href="/sneakers"
+            href="/"
             className={`pb-3 transition ${isSneakers
               ? "text-white border-b-2 border-white"
               : "border-b-2 border-transparent hover:text-white"
