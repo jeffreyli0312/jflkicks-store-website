@@ -21,6 +21,27 @@ export const product = defineType({
         }),
 
         defineField({
+            name: 'brand',
+            title: 'Brand',
+            type: 'string',
+            validation: (r) => r.required(),
+        }),
+
+        defineField({
+            name: 'condition',
+            title: 'Condition',
+            type: 'string',
+            validation: (r) => r.required(),
+        }),
+
+        defineField({
+            name: 'size',
+            title: 'Size',
+            type: 'number',
+            validation: (r) => r.required().min(0),
+        }),
+
+        defineField({
             name: 'price',
             title: 'Price',
             type: 'number',
