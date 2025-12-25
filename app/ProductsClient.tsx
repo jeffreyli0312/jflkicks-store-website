@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScrollFadeIn from "../app/components/scrollFadeIn";
 import { createClient } from "@sanity/client";
+import { ChevronDown, ChevronUp, SlidersHorizontal, X } from "lucide-react";
+
 
 const imageUrlBuilder = require("@sanity/image-url");
 
@@ -50,14 +52,14 @@ function Chip({ text, onRemove }: { text: string; onRemove: () => void }) {
                 className="text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                 aria-label={`Remove ${text}`}
             >
-                ×
+                <X className="h-5 w-5" />
             </button>
         </span>
     );
 }
 
 /**
- * MultiSelect
+ * Desktop MultiSelect
  * - Minimal trigger: LABEL ▾ / ▴
  * - Click outside closes WITHOUT applying (draft is discarded)
  * - Filters only apply when user clicks Done
@@ -77,12 +79,10 @@ function MultiSelect({
     const [draft, setDraft] = useState<(string | number)[]>(value);
     const wrapRef = useRef<HTMLDivElement | null>(null);
 
-    // when opening, copy applied -> draft
     useEffect(() => {
         if (open) setDraft(value);
     }, [open, value]);
 
-    // close on click outside (discard draft)
     useEffect(() => {
         function onDocMouseDown(e: MouseEvent) {
             if (!wrapRef.current) return;
@@ -115,7 +115,11 @@ function MultiSelect({
                 className="flex items-center gap-2 text-sm tracking-wide text-black dark:text-zinc-50 hover:opacity-70"
             >
                 <span className={isApplied ? "font-semibold" : ""}>{label}</span>
-                <span className="text-xs">{open ? "▴" : "▾"}</span>
+                {open ? (
+                    <ChevronUp className="h-4 w-4 opacity-70" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 opacity-70" />
+                )}
             </button>
 
             {open && (
@@ -167,7 +171,7 @@ function MultiSelect({
 }
 
 /**
- * PriceDropdown
+ * Desktop PriceDropdown
  * - Minimal trigger: PRICE ▾ / ▴
  * - Draft min/max inputs
  * - Applies only on Done
@@ -191,7 +195,6 @@ function PriceDropdown({
 
     const isApplied = Boolean(minPrice.trim() || maxPrice.trim());
 
-    // when opening, copy applied -> draft
     useEffect(() => {
         if (open) {
             setDraftMin(minPrice);
@@ -199,7 +202,6 @@ function PriceDropdown({
         }
     }, [open, minPrice, maxPrice]);
 
-    // click outside closes (discard draft)
     useEffect(() => {
         function onDocMouseDown(e: MouseEvent) {
             if (!wrapRef.current) return;
@@ -228,7 +230,11 @@ function PriceDropdown({
                 className="flex items-center gap-2 text-sm tracking-wide text-black dark:text-zinc-50 hover:opacity-70"
             >
                 <span className={isApplied ? "font-semibold" : ""}>Price</span>
-                <span className="text-xs">{open ? "▴" : "▾"}</span>
+                {open ? (
+                    <ChevronUp className="h-4 w-4 opacity-70" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 opacity-70" />
+                )}
             </button>
 
             {open && (
@@ -279,22 +285,50 @@ function PriceDropdown({
     );
 }
 
+/** Mobile helpers */
+function MobileSection({
+    title,
+    open,
+    onToggle,
+    children,
+}: {
+    title: string;
+    open: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="border-b border-zinc-200 dark:border-zinc-800">
+            <button
+                type="button"
+                onClick={onToggle}
+                className="w-full flex items-center justify-between py-4 text-left"
+            >
+                <span className="text-sm font-semibold text-black dark:text-zinc-50">{title}</span>
+                {open ? (
+                    <ChevronUp className="h-4 w-4 text-zinc-500" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 text-zinc-500" />
+                )}
+            </button>
+            {open && <div className="pb-4">{children}</div>}
+        </div>
+    );
+}
+
 export default function ProductsClient({ products }: { products: Product[] }) {
     const brandOptions = useMemo(() => uniqSorted(products.map((p) => p.brand)), [products]);
-    const conditionOptions = useMemo(
-        () => uniqSorted(products.map((p) => p.condition)),
-        [products]
-    );
+    const conditionOptions = useMemo(() => uniqSorted(products.map((p) => p.condition)), [products]);
     const sizeOptions = useMemo(() => uniqSorted(products.map((p) => p.size)), [products]);
 
-    // APPLIED (only updates when Done clicked inside dropdowns)
+    // APPLIED
     const [brands, setBrands] = useState<(string | number)[]>([]);
     const [conditions, setConditions] = useState<(string | number)[]>([]);
     const [sizes, setSizes] = useState<(string | number)[]>([]);
     const [minPrice, setMinPrice] = useState<string>("");
     const [maxPrice, setMaxPrice] = useState<string>("");
 
-    // Sort is immediate (no Done needed)
+    // Sort is immediate on desktop; on mobile we draft it and apply on Apply
     const [sort, setSort] = useState<"Newest" | "PriceLow" | "PriceHigh">("Newest");
 
     const [animationKey, setAnimationKey] = useState(0);
@@ -341,28 +375,87 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         setMaxPrice("");
     }
 
+    /** ------------------ MOBILE DRAWER STATE (DRAFT) ------------------ */
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const [mBrands, setMBrands] = useState<(string | number)[]>([]);
+    const [mConditions, setMConditions] = useState<(string | number)[]>([]);
+    const [mSizes, setMSizes] = useState<(string | number)[]>([]);
+    const [mMinPrice, setMMinPrice] = useState("");
+    const [mMaxPrice, setMMaxPrice] = useState("");
+    const [mSort, setMSort] = useState<"Newest" | "PriceLow" | "PriceHigh">("Newest");
+
+    // sections
+    const [secBrand, setSecBrand] = useState(true);
+    const [secCond, setSecCond] = useState(false);
+    const [secSize, setSecSize] = useState(false);
+    const [secPrice, setSecPrice] = useState(false);
+    const [secSort, setSecSort] = useState(false);
+
+    // when opening mobile drawer: copy APPLIED -> DRAFT
+    useEffect(() => {
+        if (!mobileOpen) return;
+        setMBrands(brands);
+        setMConditions(conditions);
+        setMSizes(sizes);
+        setMMinPrice(minPrice);
+        setMMaxPrice(maxPrice);
+        setMSort(sort);
+    }, [mobileOpen, brands, conditions, sizes, minPrice, maxPrice, sort]);
+
+    function mobileDiscardClose() {
+        setMobileOpen(false); // drafts are discarded because we re-copy on open
+    }
+
+    function mobileApply() {
+        setBrands(mBrands);
+        setConditions(mConditions);
+        setSizes(mSizes);
+        setMinPrice(mMinPrice);
+        setMaxPrice(mMaxPrice);
+        setSort(mSort);
+        setMobileOpen(false);
+    }
+
+    function toggleDraft(list: (string | number)[], setList: (v: (string | number)[]) => void, opt: string | number) {
+        setList(list.includes(opt) ? list.filter((x) => x !== opt) : [...list, opt]);
+    }
+
+    const mobileAppliedCount = useMemo(() => {
+        let count = 0;
+        count += brands.length;
+        count += conditions.length;
+        count += sizes.length;
+        if (minPrice.trim() || maxPrice.trim()) count += 1;
+        return count;
+    }, [brands, conditions, sizes, minPrice, maxPrice]);
+
+    /** lock background scroll when drawer open */
+    useEffect(() => {
+        if (!mobileOpen) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [mobileOpen]);
+
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black">
             <main className="mx-auto w-full max-w-6xl pt-10 pb-20 px-4 sm:px-6 lg:px-8">
-                {/* Top dropdown row (minimal) */}
-                <div className="mb-6 flex flex-wrap items-center gap-10">
-                    <MultiSelect label="Brand" options={brandOptions} value={brands} onChange={setBrands} />
-                    <MultiSelect
-                        label="Condition"
-                        options={conditionOptions}
-                        value={conditions}
-                        onChange={setConditions}
-                    />
-                    <MultiSelect label="Size" options={sizeOptions} value={sizes} onChange={setSizes} />
+                {/* MOBILE TOP BAR */}
+                <div className="mb-6 flex items-center gap-3 md:hidden">
+                    <button
+                        type="button"
+                        onClick={() => setMobileOpen(true)}
+                        className="inline-flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2 text-sm text-black dark:text-zinc-50"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <SlidersHorizontal className="h-4 w-4" />
+                            Filter{mobileAppliedCount ? ` (${mobileAppliedCount})` : ""}
+                        </span>
+                    </button>
 
-                    <PriceDropdown
-                        minPrice={minPrice}
-                        maxPrice={maxPrice}
-                        setMinPrice={setMinPrice}
-                        setMaxPrice={setMaxPrice}
-                    />
-
-                    {/* Sort (FIXED: visible text in dark mode) */}
                     <select
                         value={sort}
                         onChange={(e) => setSort(e.target.value as any)}
@@ -374,7 +467,31 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     </select>
                 </div>
 
-                {/* Applied filters chips (like screenshot) */}
+                {/* DESKTOP FILTER ROW */}
+                <div className="mb-6 hidden md:flex flex-wrap items-center gap-10">
+                    <MultiSelect label="Brand" options={brandOptions} value={brands} onChange={setBrands} />
+                    <MultiSelect label="Condition" options={conditionOptions} value={conditions} onChange={setConditions} />
+                    <MultiSelect label="Size" options={sizeOptions} value={sizes} onChange={setSizes} />
+
+                    <PriceDropdown
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                        setMinPrice={setMinPrice}
+                        setMaxPrice={setMaxPrice}
+                    />
+
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value as any)}
+                        className="ml-auto rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-black dark:text-zinc-50"
+                    >
+                        <option value="Newest">Sort: Newest</option>
+                        <option value="PriceLow">Sort: Price Low → High</option>
+                        <option value="PriceHigh">Sort: Price High → Low</option>
+                    </select>
+                </div>
+
+                {/* Applied filters chips */}
                 {hasAnyFilters && (
                     <div className="mb-8 flex flex-wrap items-center gap-3">
                         <span className="text-sm font-semibold tracking-wide text-black dark:text-zinc-50">
@@ -425,22 +542,12 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     </div>
                 )}
 
-                {/* Product grid */}
-                <ul
-                    key={animationKey}
-                    className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"
-                >
+                {/* PRODUCT GRID */}
+                <ul key={animationKey} className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                     {filteredAndSorted.map((p) => {
                         const firstImage = p.images?.[0];
-
                         const imgUrl = firstImage
-                            ? urlFor(firstImage)
-                                .width(800)
-                                .height(900)
-                                .fit("crop")
-                                .quality(70)
-                                .auto("format")
-                                .url()
+                            ? urlFor(firstImage).width(800).height(900).fit("crop").quality(70).auto("format").url()
                             : null;
 
                         return (
@@ -476,6 +583,172 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     })}
                 </ul>
             </main>
+
+            {/* ------------------ MOBILE FILTER DRAWER (BOTTOM SHEET) ------------------ */}
+            {mobileOpen && (
+                <div className="fixed inset-0 z-50 md:hidden">
+                    {/* backdrop */}
+                    <button
+                        type="button"
+                        aria-label="Close filters"
+                        onClick={mobileDiscardClose}
+                        className="absolute inset-0 bg-black/40"
+                    />
+
+                    {/* sheet */}
+                    <div className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-2xl bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 shadow-2xl">
+                        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                            <div className="text-sm font-semibold text-black dark:text-zinc-50">Filters</div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMBrands([]);
+                                        setMConditions([]);
+                                        setMSizes([]);
+                                        setMMinPrice("");
+                                        setMMaxPrice("");
+                                        setMSort("Newest");
+                                    }}
+                                    className="text-sm underline text-zinc-700 dark:text-zinc-200"
+                                >
+                                    Clear
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={mobileDiscardClose}
+                                    className="text-xl leading-none text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                                    aria-label="Close"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="overflow-auto px-4">
+                            <MobileSection title="Brand" open={secBrand} onToggle={() => setSecBrand((s) => !s)}>
+                                <div className="max-h-56 overflow-auto pr-1">
+                                    {brandOptions.map((opt) => {
+                                        const checked = mBrands.includes(opt);
+                                        return (
+                                            <label key={String(opt)} className="flex items-center gap-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={() => toggleDraft(mBrands, setMBrands, opt)}
+                                                    className="h-4 w-4"
+                                                />
+                                                <span className="text-sm text-black dark:text-zinc-50">{String(opt)}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </MobileSection>
+
+                            <MobileSection
+                                title="Condition"
+                                open={secCond}
+                                onToggle={() => setSecCond((s) => !s)}
+                            >
+                                <div className="max-h-56 overflow-auto pr-1">
+                                    {conditionOptions.map((opt) => {
+                                        const checked = mConditions.includes(opt);
+                                        return (
+                                            <label key={String(opt)} className="flex items-center gap-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={() => toggleDraft(mConditions, setMConditions, opt)}
+                                                    className="h-4 w-4"
+                                                />
+                                                <span className="text-sm text-black dark:text-zinc-50">{String(opt)}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </MobileSection>
+
+                            <MobileSection title="Size" open={secSize} onToggle={() => setSecSize((s) => !s)}>
+                                <div className="max-h-56 overflow-auto pr-1">
+                                    {sizeOptions.map((opt) => {
+                                        const checked = mSizes.includes(opt);
+                                        return (
+                                            <label key={String(opt)} className="flex items-center gap-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={() => toggleDraft(mSizes, setMSizes, opt)}
+                                                    className="h-4 w-4"
+                                                />
+                                                <span className="text-sm text-black dark:text-zinc-50">{String(opt)}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </MobileSection>
+
+                            <MobileSection title="Price" open={secPrice} onToggle={() => setSecPrice((s) => !s)}>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        inputMode="numeric"
+                                        placeholder="Min"
+                                        value={mMinPrice}
+                                        onChange={(e) => setMMinPrice(e.target.value)}
+                                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-black dark:text-zinc-50 outline-none placeholder:text-zinc-400"
+                                    />
+                                    <span className="text-zinc-400">–</span>
+                                    <input
+                                        inputMode="numeric"
+                                        placeholder="Max"
+                                        value={mMaxPrice}
+                                        onChange={(e) => setMMaxPrice(e.target.value)}
+                                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-black dark:text-zinc-50 outline-none placeholder:text-zinc-400"
+                                    />
+                                </div>
+                            </MobileSection>
+
+                            <MobileSection title="Sort" open={secSort} onToggle={() => setSecSort((s) => !s)}>
+                                <div className="flex flex-col gap-2">
+                                    {[
+                                        { key: "Newest", label: "Newest" },
+                                        { key: "PriceLow", label: "Price Low → High" },
+                                        { key: "PriceHigh", label: "Price High → Low" },
+                                    ].map((o) => (
+                                        <label key={o.key} className="flex items-center gap-3 py-2">
+                                            <input
+                                                type="radio"
+                                                name="mobileSort"
+                                                checked={mSort === (o.key as any)}
+                                                onChange={() => setMSort(o.key as any)}
+                                                className="h-4 w-4"
+                                            />
+                                            <span className="text-sm text-black dark:text-zinc-50">{o.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </MobileSection>
+                        </div>
+
+                        {/* bottom actions */}
+                        <div className="px-4 py-4 border-t border-zinc-200 dark:border-zinc-800 flex gap-3">
+                            <button
+                                type="button"
+                                onClick={mobileDiscardClose}
+                                className="w-1/2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-3 text-sm text-black dark:text-zinc-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={mobileApply}
+                                className="w-1/2 rounded-md bg-zinc-900 text-white dark:bg-zinc-50 dark:text-black py-3 text-sm"
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
