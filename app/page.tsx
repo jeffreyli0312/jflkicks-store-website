@@ -34,6 +34,6 @@ export default async function Home() {
     }
   `);
   
-  // This file is a server side file
+  // Current file is a server side file
   return <ProductsClient products={products} />;
 }

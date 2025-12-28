@@ -1,3 +1,5 @@
+
+// This file is a client side file
 "use client";
 
 import Image from "next/image";

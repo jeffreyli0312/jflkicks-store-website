@@ -1,5 +1,7 @@
 import { defineField, defineType } from 'sanity'
 
+// This fils is used to define the Sanity schema for products
+
 export const product = defineType({
     name: 'product',
     title: 'Product',

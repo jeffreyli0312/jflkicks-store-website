@@ -1,5 +1,7 @@
+
 import { createClient } from "@sanity/client";
 import ProductCarousel from "./ProductCarousel";
+import type { Metadata } from "next";
 
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -12,9 +14,38 @@ type Props = {
   params: { slug?: string } | Promise<{ slug?: string }>;
 };
 
-export const metadata = {
-  title: "Yeezy 500 Blush",
-};
+// Calls function before rendering page since generateMetadata is a hook
+export async function generateMetadata( 
+  { params }: Props
+): Promise<Metadata> {
+
+  const { slug } = await Promise.resolve(params);
+
+  if (!slug) {
+    return { title: "Sneakers | JLFKicks" };
+  }
+
+  // Query Sanity CMS, get first product title & description with matching slug
+  const product = await sanity.fetch(
+    `
+    *[_type == "product" && slug.current == $slug][0]{
+      title,
+      description
+    }
+    `,
+    { slug } // pass value of slug into the query, reference using $slug
+  );
+
+  if (!product) {
+    return { title: "Product Not Found | JLFKicks" };
+  }
+
+  return { // Inject strings below into the page head (tab title)
+    title: product.title,
+    description: product.description,
+  };
+}
+
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await Promise.resolve(params);
