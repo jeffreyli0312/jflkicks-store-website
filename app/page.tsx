@@ -34,9 +34,7 @@ export default async function Home() {
       _createdAt
     }
   `);
-
+  
   // Current file is a server side file
-  <Suspense fallback={null}>
-    <ProductsClient products={products} />
-  </Suspense>
+  return <ProductsClient products={products} />;
 }
