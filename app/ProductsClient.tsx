@@ -1,7 +1,7 @@
 // app/products/ProductsClient.tsx
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import { SlidersHorizontal } from "lucide-react";
@@ -13,6 +13,8 @@ import Chip from "../app/components/products/Chip";
 import ProductCard from "../app/components/products/ProductCard";
 import FiltersDesktop from "../app/components/products/FiltersDesktop";
 import FiltersMobileDrawer from "../app/components/products/FiltersMobileDrawer";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const sanity = createClient({
     projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -28,28 +30,148 @@ function urlFor(source: any) {
 }
 
 export default function ProductsClient({ products }: { products: Product[] }) {
-    const brandOptions = useMemo(() => uniqSorted(products.map((p) => p.brand)), [products]);
-    const conditionOptions = useMemo(() => uniqSorted(products.map((p) => p.condition)), [products]);
-    const sizeOptions = useMemo(() => uniqSorted(products.map((p) => p.size)), [products]);
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-    // APPLIED
+    const searchTerm = (searchParams.get("q") ?? "").trim();
+
+    function clearSearchParam() {
+        const next = new URLSearchParams(searchParams.toString());
+        next.delete("q");
+        const qs = next.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }
+
+
+
+    const brandOptions = useMemo(
+        () => uniqSorted(products.map((p) => p.brand)),
+        [products]
+    );
+    const conditionOptions = useMemo(
+        () => uniqSorted(products.map((p) => p.condition)),
+        [products]
+    );
+    const sizeOptions = useMemo(
+        () => uniqSorted(products.map((p) => p.size)),
+        [products]
+    );
+
+    // ------------------ APPLIED FILTERS ------------------
     const [brands, setBrands] = useState<(string | number)[]>([]);
     const [conditions, setConditions] = useState<(string | number)[]>([]);
     const [sizes, setSizes] = useState<(string | number)[]>([]);
     const [minPrice, setMinPrice] = useState<string>("");
     const [maxPrice, setMaxPrice] = useState<string>("");
 
-    const [sort, setSort] = useState<"Newest" | "Oldest" | "PriceLow" | "PriceHigh">("Newest");
+    const [sort, setSort] = useState<
+        "Newest" | "Oldest" | "PriceLow" | "PriceHigh"
+    >("Newest");
 
+    // Re-trigger list animation when applied filters change or when new search
     const [animationKey, setAnimationKey] = useState(0);
     useEffect(() => {
         setAnimationKey((k) => k + 1);
-    }, [brands, conditions, sizes, minPrice, maxPrice, sort]);
+    }, [brands, conditions, sizes, minPrice, maxPrice, sort, searchTerm]);
+
+    function normalize(s: string) {
+        return s
+            .toLowerCase()
+            .replace(/['"]/g, "")
+            .replace(/[^a-z0-9]+/g, " ")
+            .trim();
+    }
+
+    function tokenize(q: string) {
+        return normalize(q).split(" ").filter(Boolean);
+    }
+
+    // very small, safe fuzzy matcher (edit distance <= 1 for short words, <=2 for longer)
+    function editDistance(a: string, b: string) {
+        const m = a.length;
+        const n = b.length;
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) dp[i][0] = i;
+        for (let j = 0; j <= n; j++) dp[0][j] = j;
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                dp[i][j] = Math.min(
+                    dp[i - 1][j] + 1,      // delete
+                    dp[i][j - 1] + 1,      // insert
+                    dp[i - 1][j - 1] + cost // replace
+                );
+            }
+        }
+        return dp[m][n];
+    }
+
+    function fuzzyIncludesToken(hayTokens: string[], token: string) {
+        // exact match first
+        if (hayTokens.includes(token)) return true;
+
+        // avoid expensive fuzzy for tiny tokens
+        if (token.length <= 2) return false;
+
+        // threshold
+        const maxDist = token.length <= 4 ? 1 : 2;
+
+        for (const ht of hayTokens) {
+            if (Math.abs(ht.length - token.length) > maxDist) continue;
+            if (editDistance(ht, token) <= maxDist) return true;
+        }
+        return false;
+    }
+
+    function scoreProduct(p: Product, tokens: string[]) {
+        const title = normalize(p.title ?? "");
+        const brand = normalize(String(p.brand ?? ""));
+        const condition = normalize(String(p.condition ?? ""));
+        const size = normalize(String(p.size ?? ""));
+        const combined = normalize([p.title, p.brand, p.condition, p.size].filter(Boolean).join(" "));
+
+        const combinedTokens = combined.split(" ").filter(Boolean);
+
+        let score = 0;
+
+        // AND requirement: every token must match somewhere (exact or fuzzy)
+        for (const t of tokens) {
+            const ok =
+                combined.includes(t) || fuzzyIncludesToken(combinedTokens, t);
+
+            if (!ok) return { ok: false, score: 0 };
+        }
+
+        // scoring (relevance)
+        for (const t of tokens) {
+            // stronger signals
+            if (title.includes(t)) score += 50;
+            if (brand.includes(t)) score += 35;
+
+            // bonuses
+            if (title.startsWith(t)) score += 10;
+            if (brand.startsWith(t)) score += 6;
+
+            // weaker fields
+            if (condition.includes(t)) score += 8;
+            if (size.includes(t)) score += 6;
+
+            // fuzzy bonus (only if not exact)
+            if (!combined.includes(t) && fuzzyIncludesToken(combinedTokens, t)) score += 4;
+        }
+
+        return { ok: true, score };
+    }
+
 
     const filteredAndSorted = useMemo(() => {
         const min = minPrice.trim() === "" ? null : Number(minPrice);
         const max = maxPrice.trim() === "" ? null : Number(maxPrice);
 
+        const tokens = tokenize(searchTerm);
+
+        // Filter first
         let list = products.filter((p) => {
             if (brands.length && !brands.includes(p.brand ?? "")) return false;
             if (conditions.length && !conditions.includes(p.condition ?? "")) return false;
@@ -59,9 +181,38 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             if (min !== null && (price === null || price < min)) return false;
             if (max !== null && (price === null || price > max)) return false;
 
+            // search requirement
+            if (tokens.length) {
+                const res = scoreProduct(p, tokens);
+                if (!res.ok) return false;
+            }
+
             return true;
         });
 
+        if (tokens.length) {
+            list = [...list]
+                .map((p) => ({ p, s: scoreProduct(p, tokens).score }))
+                .sort((a, b) => {
+                    // primary: relevance
+                    if (b.s !== a.s) return b.s - a.s;
+
+                    // tie-breaker: selected sort
+                    if (sort === "PriceLow") return (a.p.price ?? Infinity) - (b.p.price ?? Infinity);
+                    if (sort === "PriceHigh") return (b.p.price ?? -Infinity) - (a.p.price ?? -Infinity);
+
+                    const at = a.p._createdAt ? new Date(a.p._createdAt).getTime() : 0;
+                    const bt = b.p._createdAt ? new Date(b.p._createdAt).getTime() : 0;
+
+                    if (sort === "Oldest") return at - bt;
+                    return bt - at;
+                })
+                .map((x) => x.p);
+
+            return list; // ✅ important: don't sort again below
+        }
+
+        // no search term -> normal sorting
         list = [...list].sort((a, b) => {
             if (sort === "PriceLow") return (a.price ?? Infinity) - (b.price ?? Infinity);
             if (sort === "PriceHigh") return (b.price ?? -Infinity) - (a.price ?? -Infinity);
@@ -74,10 +225,15 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         });
 
         return list;
-    }, [products, brands, conditions, sizes, minPrice, maxPrice, sort]);
+
+    }, [products, brands, conditions, sizes, minPrice, maxPrice, sort, searchTerm]);
 
     const hasAnyFilters =
-        brands.length || conditions.length || sizes.length || minPrice.trim() || maxPrice.trim();
+        brands.length ||
+        conditions.length ||
+        sizes.length ||
+        minPrice.trim() ||
+        maxPrice.trim();
 
     function clearAll() {
         setBrands([]);
@@ -87,19 +243,22 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         setMaxPrice("");
     }
 
-    /** ------------------ MOBILE DRAWER (DRAFT) ------------------ */
+    // ------------------ MOBILE DRAWER (DRAFT) ------------------
     const [mobileOpen, setMobileOpen] = useState(false);
     const [mobileAnimateIn, setMobileAnimateIn] = useState(false);
     const CLOSE_MS = 220;
 
+    // Draft values (user edits these in drawer)
     const [mBrands, setMBrands] = useState<(string | number)[]>([]);
     const [mConditions, setMConditions] = useState<(string | number)[]>([]);
     const [mSizes, setMSizes] = useState<(string | number)[]>([]);
     const [mMinPrice, setMMinPrice] = useState("");
     const [mMaxPrice, setMMaxPrice] = useState("");
-    const [mSort, setMSort] = useState<"Newest" | "Oldest" | "PriceLow" | "PriceHigh">("Newest");
+    const [mSort, setMSort] = useState<
+        "Newest" | "Oldest" | "PriceLow" | "PriceHigh"
+    >("Newest");
 
-    // sections (start closed)
+    // Drawer sections (start closed)
     const [secBrand, setSecBrand] = useState(false);
     const [secCond, setSecCond] = useState(false);
     const [secSize, setSecSize] = useState(false);
@@ -117,11 +276,11 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     }
 
     function mobileApply() {
-        // start closing animation first
+        // close first (smooth)
         setMobileAnimateIn(false);
 
+        // apply after close finishes
         window.setTimeout(() => {
-            // apply AFTER close animation
             setBrands(mBrands);
             setConditions(mConditions);
             setSizes(mSizes);
@@ -133,7 +292,6 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         }, CLOSE_MS);
     }
 
-
     function clearMobileDraft() {
         setMBrands([]);
         setMConditions([]);
@@ -143,8 +301,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         setMSort("Newest");
     }
 
-    // when opening: copy APPLIED -> DRAFT + reset sections
-
+    // Copy APPLIED -> DRAFT only on CLOSED -> OPEN
     const wasMobileOpenRef = useRef(false);
 
     useEffect(() => {
@@ -152,8 +309,8 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
         const wasOpen = wasMobileOpenRef.current;
 
-        // only on CLOSED -> OPEN
         if (!wasOpen && mobileOpen) {
+            // snapshot applied state into draft
             setMBrands(brands);
             setMConditions(conditions);
             setMSizes(sizes);
@@ -161,23 +318,23 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             setMMaxPrice(maxPrice);
             setMSort(sort);
 
+            // reset sections
             setSecBrand(false);
             setSecCond(false);
             setSecSize(false);
             setSecPrice(false);
             setSecSort(false);
 
+            // animate in
             t = window.setTimeout(() => setMobileAnimateIn(true), 10);
         }
 
-        // ✅ IMPORTANT: always update the ref
         wasMobileOpenRef.current = mobileOpen;
 
         return () => {
             if (t) window.clearTimeout(t);
         };
     }, [mobileOpen, brands, conditions, sizes, minPrice, maxPrice, sort]);
-
 
     // lock background scroll when drawer open
     useEffect(() => {
@@ -207,9 +364,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                         type="button"
                         onClick={openMobileDrawer}
                         className="inline-flex items-center justify-center rounded-md px-4 py-2
-             text-black dark:text-zinc-50
-             transition-opacity
-             hover:opacity-70"
+              text-black dark:text-zinc-50 transition-opacity hover:opacity-70"
                     >
                         <span className="inline-flex items-center gap-2">
                             <SlidersHorizontal className="h-4 w-4" />
@@ -257,7 +412,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                             <Chip
                                 key={`cond-${String(c)}`}
                                 text={String(c)}
-                                onRemove={() => setConditions(conditions.filter((x) => x !== c))}
+                                onRemove={() =>
+                                    setConditions(conditions.filter((x) => x !== c))
+                                }
                             />
                         ))}
 
@@ -289,12 +446,45 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     </div>
                 )}
 
+                {searchTerm && (
+  <div className="mb-4 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">
+    <div className="flex items-center justify-between">
+      <div>
+        <span className="font-semibold">Search results for </span>
+        <span className="font-semibold">“{searchTerm}”</span>
+      </div>
+
+      <button
+        type="button"
+        onClick={clearSearchParam}
+        className="text-sm underline text-zinc-700 hover:text-black dark:text-zinc-200 dark:hover:text-white"
+      >
+        Remove
+      </button>
+    </div>
+
+    {filteredAndSorted.length === 0 && (
+      <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+        No products matched your search. Try a different keyword or remove the search.
+      </div>
+    )}
+  </div>
+)}
+
+
+
                 {/* PRODUCT GRID */}
                 <ul key={animationKey} className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                     {filteredAndSorted.map((p) => {
                         const firstImage = p.images?.[0];
                         const imgUrl = firstImage
-                            ? urlFor(firstImage).width(800).height(900).fit("crop").quality(70).auto("format").url()
+                            ? urlFor(firstImage)
+                                .width(800)
+                                .height(900)
+                                .fit("crop")
+                                .quality(70)
+                                .auto("format")
+                                .url()
                             : null;
 
                         return <ProductCard key={p._id} product={p} imageUrl={imgUrl} />;
