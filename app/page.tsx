@@ -1,7 +1,6 @@
 
 import { createClient } from "@sanity/client";
 import ProductsClient from "./ProductsClient";
-import { Suspense } from "react";
 
 
 const sanity = createClient({

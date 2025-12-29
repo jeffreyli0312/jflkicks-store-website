@@ -447,30 +447,22 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                 )}
 
                 {searchTerm && (
-  <div className="mb-4 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">
-    <div className="flex items-center justify-between">
-      <div>
-        <span className="font-semibold">Search results for </span>
-        <span className="font-semibold">“{searchTerm}”</span>
-      </div>
+                    <div className="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">
+                        <div>
+                            <span className="font-semibold">Search results for </span>
+                            <span className="font-semibold">“{searchTerm}”</span>
+                        </div>
 
-      <button
-        type="button"
-        onClick={clearSearchParam}
-        className="text-sm underline text-zinc-700 hover:text-black dark:text-zinc-200 dark:hover:text-white"
-      >
-        Remove
-      </button>
-    </div>
-
-    {filteredAndSorted.length === 0 && (
-      <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-        No products matched your search. Try a different keyword or remove the search.
-      </div>
-    )}
-  </div>
-)}
-
+                        <button
+                            type="button"
+                            onClick={clearSearchParam}
+                            className="text-sm underline text-zinc-700 hover:text-black dark:text-zinc-200 dark:hover:text-white"
+                            aria-label="Remove search"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                )}
 
 
                 {/* PRODUCT GRID */}
