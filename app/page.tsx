@@ -1,6 +1,7 @@
 
 import { createClient } from "@sanity/client";
 import ProductsClient from "./ProductsClient";
+import { Suspense } from "react";
 
 
 const sanity = createClient({
@@ -35,5 +36,9 @@ export default async function Home() {
   `);
   
   // Current file is a server side file
-  return <ProductsClient products={products} />;
+  return (
+    <Suspense fallback={null}>
+      <ProductsClient products={products} />
+    </Suspense>
+  );
 }
