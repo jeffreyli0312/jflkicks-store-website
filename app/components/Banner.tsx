@@ -20,10 +20,11 @@ export default function Banner() {
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
   const desktopInputRef = useRef<HTMLInputElement | null>(null);
 
-  const isSneakers = useMemo(
-    () => pathname === "/",
-    [pathname]
-  );
+  const isSneakers = useMemo(() => {
+    if (!pathname) return true;      // 👈 default on first load
+    return pathname === "/";
+  }, [pathname]);
+
   const isAccessories = useMemo(
     () => pathname === "/accessories" || pathname.startsWith("/accessories/"),
     [pathname]

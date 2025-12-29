@@ -1,7 +1,7 @@
 // app/products/ProductsClient.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import { SlidersHorizontal } from "lucide-react";
@@ -117,16 +117,22 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     }
 
     function mobileApply() {
-        setBrands(mBrands);
-        setConditions(mConditions);
-        setSizes(mSizes);
-        setMinPrice(mMinPrice);
-        setMaxPrice(mMaxPrice);
-        setSort(mSort);
-
+        // start closing animation first
         setMobileAnimateIn(false);
-        window.setTimeout(() => setMobileOpen(false), CLOSE_MS);
+
+        window.setTimeout(() => {
+            // apply AFTER close animation
+            setBrands(mBrands);
+            setConditions(mConditions);
+            setSizes(mSizes);
+            setMinPrice(mMinPrice);
+            setMaxPrice(mMaxPrice);
+            setSort(mSort);
+
+            setMobileOpen(false);
+        }, CLOSE_MS);
     }
+
 
     function clearMobileDraft() {
         setMBrands([]);
@@ -138,25 +144,40 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     }
 
     // when opening: copy APPLIED -> DRAFT + reset sections
+
+    const wasMobileOpenRef = useRef(false);
+
     useEffect(() => {
-        if (!mobileOpen) return;
+        let t: number | undefined;
 
-        setMBrands(brands);
-        setMConditions(conditions);
-        setMSizes(sizes);
-        setMMinPrice(minPrice);
-        setMMaxPrice(maxPrice);
-        setMSort(sort);
+        const wasOpen = wasMobileOpenRef.current;
 
-        setSecBrand(false);
-        setSecCond(false);
-        setSecSize(false);
-        setSecPrice(false);
-        setSecSort(false);
+        // only on CLOSED -> OPEN
+        if (!wasOpen && mobileOpen) {
+            setMBrands(brands);
+            setMConditions(conditions);
+            setMSizes(sizes);
+            setMMinPrice(minPrice);
+            setMMaxPrice(maxPrice);
+            setMSort(sort);
 
-        const t = window.setTimeout(() => setMobileAnimateIn(true), 10);
-        return () => window.clearTimeout(t);
+            setSecBrand(false);
+            setSecCond(false);
+            setSecSize(false);
+            setSecPrice(false);
+            setSecSort(false);
+
+            t = window.setTimeout(() => setMobileAnimateIn(true), 10);
+        }
+
+        // ✅ IMPORTANT: always update the ref
+        wasMobileOpenRef.current = mobileOpen;
+
+        return () => {
+            if (t) window.clearTimeout(t);
+        };
     }, [mobileOpen, brands, conditions, sizes, minPrice, maxPrice, sort]);
+
 
     // lock background scroll when drawer open
     useEffect(() => {
