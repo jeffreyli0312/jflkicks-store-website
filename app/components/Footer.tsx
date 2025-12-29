@@ -31,14 +31,14 @@ export default function Footer() {
                                 href="mailto:jeffreyli0312@gmail.com"
                                 className="hover:text-white"
                             >
-                                Contact Us
+                                Contact
                             </a></li>
                         </ul>
                     </div>
 
                     {/* Contact */}
                     <div>
-                        <h3 className="mb-4 text-lg font-semibold text-white">Contact Us</h3>
+                        <h3 className="mb-4 text-lg font-semibold text-white">Contact</h3>
                         <p className="mb-6">jeffreyli0312@gmail.com</p>
 
                         <a
