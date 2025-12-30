@@ -8,5 +8,6 @@ export type Product = {
   brand?: string;
   condition?: string;
   size?: string | number;
+  sold?: boolean;
   _createdAt?: string;
 };

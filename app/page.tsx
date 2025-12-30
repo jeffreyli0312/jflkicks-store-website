@@ -31,6 +31,7 @@ export default async function Home() {
       brand,
       condition,
       size,
+      sold,
       _createdAt
     }
   `);

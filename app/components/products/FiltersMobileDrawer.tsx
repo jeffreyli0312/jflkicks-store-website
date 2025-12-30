@@ -4,6 +4,61 @@
 import { X } from "lucide-react";
 import MobileSection from "./MobileSection";
 
+type SortKey = "Newest" | "Oldest" | "PriceLow" | "PriceHigh";
+
+type Props = {
+    mobileOpen: boolean;
+    mobileAnimateIn: boolean;
+    closeMobileDrawerDiscard: () => void;
+    mobileApply: () => void;
+    clearMobileDraft: () => void;
+    CLOSE_MS: number;
+
+    brandOptions: (string | number)[];
+    conditionOptions: (string | number)[];
+    sizeOptions: (string | number)[];
+
+    // ✅ NEW
+    statusOptions: (string | number)[];
+    mStatuses: (string | number)[];
+    setMStatuses: (v: (string | number)[]) => void;
+    secStatus: boolean;
+    setSecStatus: (v: any) => void;
+
+    mBrands: (string | number)[];
+    setMBrands: (v: (string | number)[]) => void;
+
+    mConditions: (string | number)[];
+    setMConditions: (v: (string | number)[]) => void;
+
+    mSizes: (string | number)[];
+    setMSizes: (v: (string | number)[]) => void;
+
+    mMinPrice: string;
+    setMMinPrice: (v: string) => void;
+
+    mMaxPrice: string;
+    setMMaxPrice: (v: string) => void;
+
+    mSort: SortKey;
+    setMSort: (v: SortKey) => void;
+
+    secBrand: boolean;
+    setSecBrand: (v: any) => void;
+
+    secCond: boolean;
+    setSecCond: (v: any) => void;
+
+    secSize: boolean;
+    setSecSize: (v: any) => void;
+
+    secPrice: boolean;
+    setSecPrice: (v: any) => void;
+
+    secSort: boolean;
+    setSecSort: (v: any) => void;
+};
+
 export default function FiltersMobileDrawer({
     mobileOpen,
     mobileAnimateIn,
@@ -14,6 +69,14 @@ export default function FiltersMobileDrawer({
     brandOptions,
     conditionOptions,
     sizeOptions,
+
+    // ✅ NEW
+    statusOptions,
+    mStatuses,
+    setMStatuses,
+    secStatus,
+    setSecStatus,
+
     mBrands,
     setMBrands,
     mConditions,
@@ -36,7 +99,7 @@ export default function FiltersMobileDrawer({
     setSecPrice,
     secSort,
     setSecSort,
-}: any) {
+}: Props) {
     if (!mobileOpen) return null;
 
     function toggleDraft(
@@ -103,7 +166,7 @@ export default function FiltersMobileDrawer({
                         onToggle={() => setSecBrand((s: boolean) => !s)}
                     >
                         <div className="max-h-64 overflow-y-auto pr-1">
-                            {brandOptions.map((opt: any) => {
+                            {brandOptions.map((opt) => {
                                 const checked = mBrands.includes(opt);
                                 return (
                                     <label
@@ -131,7 +194,7 @@ export default function FiltersMobileDrawer({
                         onToggle={() => setSecCond((s: boolean) => !s)}
                     >
                         <div className="max-h-64 overflow-y-auto pr-1">
-                            {conditionOptions.map((opt: any) => {
+                            {conditionOptions.map((opt) => {
                                 const checked = mConditions.includes(opt);
                                 return (
                                     <label
@@ -141,7 +204,9 @@ export default function FiltersMobileDrawer({
                                         <input
                                             type="checkbox"
                                             checked={checked}
-                                            onChange={() => toggleDraft(mConditions, setMConditions, opt)}
+                                            onChange={() =>
+                                                toggleDraft(mConditions, setMConditions, opt)
+                                            }
                                             className="h-4 w-4"
                                         />
                                         <span className="text-sm text-black dark:text-zinc-50">
@@ -159,7 +224,7 @@ export default function FiltersMobileDrawer({
                         onToggle={() => setSecSize((s: boolean) => !s)}
                     >
                         <div className="max-h-64 overflow-y-auto pr-1">
-                            {sizeOptions.map((opt: any) => {
+                            {sizeOptions.map((opt) => {
                                 const checked = mSizes.includes(opt);
                                 return (
                                     <label
@@ -181,6 +246,35 @@ export default function FiltersMobileDrawer({
                         </div>
                     </MobileSection>
 
+                    {/* ✅ NEW: Status */}
+                    <MobileSection
+                        title="Status"
+                        open={secStatus}
+                        onToggle={() => setSecStatus((s: boolean) => !s)}
+                    >
+                        <div className="max-h-64 overflow-y-auto pr-1">
+                            {statusOptions.map((opt) => {
+                                const checked = mStatuses.includes(opt);
+                                return (
+                                    <label
+                                        key={String(opt)}
+                                        className="flex items-center gap-3 py-2 rounded-md transition-colors duration-150 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => toggleDraft(mStatuses, setMStatuses, opt)}
+                                            className="h-4 w-4"
+                                        />
+                                        <span className="text-sm text-black dark:text-zinc-50">
+                                            {String(opt)}
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </MobileSection>
+
                     <MobileSection
                         title="Price"
                         open={secPrice}
@@ -191,7 +285,7 @@ export default function FiltersMobileDrawer({
                                 inputMode="numeric"
                                 placeholder="Min"
                                 value={mMinPrice}
-                                onChange={(e: any) => setMMinPrice(e.target.value)}
+                                onChange={(e) => setMMinPrice(e.target.value)}
                                 className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-black dark:text-zinc-50 outline-none placeholder:text-zinc-400 transition-colors duration-150 focus:border-black dark:focus:border-white"
                             />
                             <span className="text-zinc-400">–</span>
@@ -199,7 +293,7 @@ export default function FiltersMobileDrawer({
                                 inputMode="numeric"
                                 placeholder="Max"
                                 value={mMaxPrice}
-                                onChange={(e: any) => setMMaxPrice(e.target.value)}
+                                onChange={(e) => setMMaxPrice(e.target.value)}
                                 className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-black dark:text-zinc-50 outline-none placeholder:text-zinc-400 transition-colors duration-150 focus:border-black dark:focus:border-white"
                             />
                         </div>
@@ -225,7 +319,7 @@ export default function FiltersMobileDrawer({
                                         type="radio"
                                         name="mobileSort"
                                         checked={mSort === o.key}
-                                        onChange={() => setMSort(o.key)}
+                                        onChange={() => setMSort(o.key as SortKey)}
                                         className="h-4 w-4"
                                     />
                                     <span className="text-sm text-black dark:text-zinc-50">

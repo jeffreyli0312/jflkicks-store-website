@@ -30,6 +30,14 @@ function urlFor(source: any) {
 }
 
 export default function ProductsClient({ products }: { products: Product[] }) {
+    const statusOptions = useMemo(() => ["Available", "Sold"], []);
+    const [statuses, setStatuses] = useState<(string | number)[]>(["Available"]);
+
+    useEffect(() => {
+        if (statuses.length === 0) setStatuses(["Available"]);
+    }, [statuses]);
+
+
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -73,7 +81,8 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     const [animationKey, setAnimationKey] = useState(0);
     useEffect(() => {
         setAnimationKey((k) => k + 1);
-    }, [brands, conditions, sizes, minPrice, maxPrice, sort, searchTerm]);
+    }, [brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
+
 
     function normalize(s: string) {
         return s
@@ -173,6 +182,18 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
         // Filter first
         let list = products.filter((p) => {
+            // Status filter (default: Available)
+            if (statuses.length) {
+                const isSold = !!p.sold;
+                const isAvailable = !isSold;
+
+                const wantAvailable = statuses.includes("Available");
+                const wantSold = statuses.includes("Sold");
+
+                if (!wantAvailable && isAvailable) return false;
+                if (!wantSold && isSold) return false;
+            }
+
             if (brands.length && !brands.includes(p.brand ?? "")) return false;
             if (conditions.length && !conditions.includes(p.condition ?? "")) return false;
             if (sizes.length && !sizes.includes(p.size ?? "")) return false;
@@ -226,16 +247,19 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
         return list;
 
-    }, [products, brands, conditions, sizes, minPrice, maxPrice, sort, searchTerm]);
+    }, [products, brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
 
     const hasAnyFilters =
+        !(statuses.length === 1 && statuses[0] === "Available") ||
         brands.length ||
         conditions.length ||
         sizes.length ||
         minPrice.trim() ||
         maxPrice.trim();
 
+
     function clearAll() {
+        setStatuses(["Available"]);
         setBrands([]);
         setConditions([]);
         setSizes([]);
@@ -265,6 +289,14 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     const [secPrice, setSecPrice] = useState(false);
     const [secSort, setSecSort] = useState(false);
 
+    const [mStatuses, setMStatuses] = useState<(string | number)[]>(["Available"]);
+    const [secStatus, setSecStatus] = useState(false);
+
+    useEffect(() => {
+        if (mStatuses.length === 0) setMStatuses(["Available"]);
+    }, [mStatuses]);
+
+
     function openMobileDrawer() {
         setMobileOpen(true);
         setMobileAnimateIn(false);
@@ -289,6 +321,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             setSort(mSort);
 
             setMobileOpen(false);
+
+            setStatuses(mStatuses);
+
         }, CLOSE_MS);
     }
 
@@ -299,6 +334,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         setMMinPrice("");
         setMMaxPrice("");
         setMSort("Newest");
+        setMStatuses(["Available"]);
     }
 
     // Copy APPLIED -> DRAFT only on CLOSED -> OPEN
@@ -317,6 +353,10 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             setMMinPrice(minPrice);
             setMMaxPrice(maxPrice);
             setMSort(sort);
+
+            setMStatuses(statuses);
+            setSecStatus(false);
+
 
             // reset sections
             setSecBrand(false);
@@ -348,12 +388,14 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
     const mobileAppliedCount = useMemo(() => {
         let count = 0;
+        if (!(statuses.length === 1 && statuses[0] === "Available")) count += 1;
+
         count += brands.length;
         count += conditions.length;
         count += sizes.length;
         if (minPrice.trim() || maxPrice.trim()) count += 1;
         return count;
-    }, [brands, conditions, sizes, minPrice, maxPrice]);
+    }, [brands, conditions, sizes, statuses, minPrice, maxPrice]);
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black">
@@ -391,6 +433,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     setMaxPrice={setMaxPrice}
                     sort={sort}
                     setSort={setSort}
+                    statusOptions={statusOptions}
+                    statuses={statuses}
+                    setStatuses={setStatuses}
                 />
 
                 {/* Applied filters chips */}
@@ -435,6 +480,19 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                                 }}
                             />
                         )}
+
+                        {!(statuses.length === 1 && statuses[0] === "Available") &&
+                            statuses.map((s) => (
+                                <Chip
+                                    key={`status-${String(s)}`}
+                                    text={`Status: ${String(s)}`}
+                                    onRemove={() => {
+                                        const next = statuses.filter((x) => x !== s);
+                                        setStatuses(next.length ? next : ["Available"]);
+                                    }}
+                                />
+                            ))}
+
 
                         <button
                             type="button"
@@ -524,6 +582,11 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                 setSecPrice={setSecPrice}
                 secSort={secSort}
                 setSecSort={setSecSort}
+                statusOptions={statusOptions}
+                mStatuses={mStatuses}
+                setMStatuses={setMStatuses}
+                secStatus={secStatus}
+                setSecStatus={setSecStatus}
             />
         </div>
     );

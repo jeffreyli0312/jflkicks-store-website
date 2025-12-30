@@ -48,7 +48,9 @@ export default async function ProductPage({ params }: Props) {
       title,
       price,
       size,
+      condition,
       description,
+      sold,
       images
     }
     `,
@@ -101,26 +103,39 @@ export default async function ProductPage({ params }: Props) {
                   </div>
 
                   {/* Description */}
-                  {product.description && (
+                  {product.description && product.condition && (
                     <p className="text-zinc-700 dark:text-zinc-300 text-base sm:text-lg leading-relaxed max-w-prose">
-                      {product.description}
+                      {product.condition}, {product.description}
                     </p>
                   )}
 
                   {/* CTA */}
-                  <Link
-                    href="https://instagram.com/jflkicks"
-                    className="inline-flex w-full items-center justify-center rounded-xl
-                               border-2 border-black dark:border-white
-                               bg-transparent px-6 py-4 text-base sm:text-lg font-semibold
-                               text-black dark:text-white
-                               transition-colors
-                               hover:bg-black hover:text-white
-                               dark:hover:bg-white dark:hover:text-black
-                               active:scale-[0.98]"
-                  >
-                    Contact Us
-                  </Link>
+                  {product.sold ? (
+                    <div
+                      className="inline-flex w-full items-center justify-center rounded-xl
+               border-2 border-black/40 dark:border-white/40
+               bg-transparent px-6 py-4 text-base sm:text-lg font-semibold
+               text-black/50 dark:text-white/50
+               cursor-not-allowed"
+                    >
+                      Sold
+                    </div>
+                  ) : (
+                    <Link
+                      href="https://instagram.com/jflkicks"
+                      className="inline-flex w-full items-center justify-center rounded-xl
+               border-2 border-black dark:border-white
+               bg-transparent px-6 py-4 text-base sm:text-lg font-semibold
+               text-black dark:text-white
+               transition-colors
+               hover:bg-black hover:text-white
+               dark:hover:bg-white dark:hover:text-black
+               active:scale-[0.98]"
+                    >
+                      Contact Us
+                    </Link>
+                  )}
+
 
                   {/* Trust + Help block */}
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 p-5">

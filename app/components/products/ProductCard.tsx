@@ -13,12 +13,16 @@ export default function ProductCard({
     product: Product;
     imageUrl: string | null;
 }) {
+    const isSold = !!product.sold;
+
     return (
         <li className="group">
             <ScrollFadeIn>
                 <Link
                     href={`/product/${product.slug.current}`}
-                    className="block rounded-lg p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
+                    className={`block rounded-lg p-2 transition
+            ${isSold ? "opacity-80" : "hover:bg-zinc-100 dark:hover:bg-zinc-900"}
+          `}
                 >
                     <div className="relative w-full overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900 aspect-[8/9]">
                         {imageUrl && (
@@ -30,6 +34,14 @@ export default function ProductCard({
                                 sizes="(max-width: 768px) 50vw, 33vw"
                                 unoptimized
                             />
+                        )}
+
+                        {isSold && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="rounded-md bg-black/75 px-3 py-1 text-xs font-semibold tracking-widest text-white">
+                                    SOLD
+                                </span>
+                            </div>
                         )}
                     </div>
 
