@@ -529,6 +529,19 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     </div>
                 )}
 
+                {/* No search, but the filters are applied and there are no results */}
+                {!searchTerm && filteredAndSorted.length === 0 &&
+                    <div className="mb-4 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <span className="font-semibold">No products were found.</span>
+                            </div>
+                        </div>
+                        <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                            Please adjust or remove your filters to see available items.
+                        </div>
+                    </div>
+                }
 
 
                 {/* PRODUCT GRID */}
