@@ -62,7 +62,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         [products]
     );
     const sizeOptions = useMemo(
-        () => uniqSorted(products.map((p) => p.size)),
+        () => uniqSorted(products.map((p) => String(p.size))),
         [products]
     );
 
@@ -196,7 +196,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
             if (brands.length && !brands.includes(p.brand ?? "")) return false;
             if (conditions.length && !conditions.includes(p.condition ?? "")) return false;
-            if (sizes.length && !sizes.includes(p.size ?? "")) return false;
+            if (sizes.length && !sizes.includes(String(p.size ?? ""))) return false;
 
             const price = p.price ?? null;
             if (min !== null && (price === null || price < min)) return false;

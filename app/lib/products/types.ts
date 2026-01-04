@@ -1,6 +1,7 @@
 // app/products/lib/types.ts
 export type Product = {
   _id: string;
+  _type: "product" | "clothing" | "accessories";
   title: string;
   price?: number;
   images?: any[];

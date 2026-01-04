@@ -1,12 +1,37 @@
 
-export default function StreetwearPage() {
-    return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-black">
-            <main className="mx-auto w-full max-w-6xl py-20 px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-semibold mb-8 text-black dark:text-zinc-50">
-                    Clothing coming soon...
-                </h1>
-            </main>
-        </div>
-    );
+import { createClient } from "@sanity/client";
+import ClothingClient from "./ClothingClient";
+import { Suspense } from "react";
+
+const sanity = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
+  apiVersion: "2024-01-01",
+  useCdn: true,
+});
+
+export const revalidate = 30;
+
+export default async function ClothingPage() {
+  const clothing = await sanity.fetch(`
+    *[_type == "clothing" && hide != true] | order(_createdAt desc){
+      _id,
+      title,
+      price,
+      images,
+      slug,
+      brand,
+      condition,
+      size,
+      sold,
+      _type,
+      _createdAt
+    }
+  `);
+
+  return (
+    <Suspense fallback={null}>
+      <ClothingClient products={clothing} />
+    </Suspense>
+  );
 }

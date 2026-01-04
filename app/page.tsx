@@ -32,6 +32,7 @@ export default async function Home() {
       condition,
       size,
       sold,
+      _type,
       _createdAt
     }
   `);

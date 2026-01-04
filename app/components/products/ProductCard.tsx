@@ -15,11 +15,19 @@ export default function ProductCard({
 }) {
     const isSold = !!product.sold;
 
+    const base =
+        product._type === "clothing" ? "/clothing" :
+            product._type === "accessories" ? "/accessories" :
+                "/product"; // your existing product detail route
+
+    const href = `${base}/${product.slug.current}`;
+
+
     return (
         <li className="group">
             <ScrollFadeIn>
                 <Link
-                    href={`/product/${product.slug.current}`}
+                    href={href}
                     className={`block rounded-lg p-2 transition
             ${isSold ? "opacity-80" : "hover:bg-zinc-100 dark:hover:bg-zinc-900"}
           `}
