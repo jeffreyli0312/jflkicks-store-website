@@ -22,7 +22,7 @@ export default function AboutPage() {
                             JFLKicks is a curated sneaker shop built around authenticity, clean
                             condition standards, and a smooth buying experience. Every pair is
                             carefully selected, photographed, and listed with clear details so
-                            you know exactly what you’re getting.
+                            you know exactly what you’re getting. We are currently located in Waterloo, Ontario.
                         </p>
 
                         <div className="mt-7 flex flex-col sm:flex-row gap-3">
@@ -62,15 +62,15 @@ export default function AboutPage() {
                         {[
                             {
                                 title: "Curated Sneakers",
-                                desc: "Only pairs we’d wear ourselves—selected for quality and style.",
+                                desc: "Only pairs we’d wear ourselves — selected for condition and model.",
                             },
                             {
                                 title: "Clear Condition",
-                                desc: "Honest photos and descriptions so there are no surprises.",
+                                desc: "Clear photos and descriptions so there are no surprises.",
                             },
                             {
                                 title: "Fast Communication",
-                                desc: "Quick replies for sizing, availability, and order questions.",
+                                desc: "Quick replies for availability, orders, and all other inquiries.",
                             },
                         ].map((item) => (
                             <div
@@ -99,13 +99,13 @@ export default function AboutPage() {
                                 JFLKicks started as a side project built from genuine interest in
                                 authentic sneakers and the joy of finding the right pair for the
                                 right price. Over time, it grew into a focused storefront with one
-                                goal: make sneaker buying simple, transparent, and trustworthy.
+                                goal: Make sneaker buying simple, transparent, and trustworthy.
                             </p>
                             <p className="mt-4 text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                                We prioritize clean product presentation, consistent listing
-                                standards, and responsive support. Whether you’re a collector or
-                                just looking for your next daily pair, the experience should feel
-                                easy and confident.
+                                We prioritize product presentation, consistent listing
+                                standards, and responsiveness. Whether you’re a collector or
+                                just looking for your next pair, the experience should feel
+                                smooth and confident.
                             </p>
                         </div>
 
@@ -137,17 +137,17 @@ export default function AboutPage() {
                             {
                                 step: "01",
                                 title: "Source & verify",
-                                desc: "We focus on legitimate pairs and consistent quality standards.",
+                                desc: "We source authentic pairs and ensure condition standards.",
                             },
                             {
                                 step: "02",
                                 title: "Photograph & list",
-                                desc: "Clear photos, key details, and honest condition notes.",
+                                desc: "Clear photos, key details, and honest condition listings.",
                             },
                             {
                                 step: "03",
                                 title: "Pack & hand off",
-                                desc: "Secure packaging and quick updates so you’re never guessing.",
+                                desc: "Secure packaging and trasnparent meetups so you’re never guessing.",
                             },
                         ].map((item) => (
                             <div
@@ -169,7 +169,7 @@ export default function AboutPage() {
                 </section>
 
                 {/* GALLERY PLACEHOLDERS */}
-                <section className="mt-14 sm:mt-20">
+                {/* <section className="mt-14 sm:mt-20">
                     <div className="flex items-end justify-between gap-6">
                         <div>
                             <h2 className="text-2xl sm:text-3xl font-semibold text-black dark:text-white">
@@ -200,43 +200,7 @@ export default function AboutPage() {
                             </div>
                         ))}
                     </div>
-                </section>
-
-                {/* FAQ */}
-                <section className="mt-14 sm:mt-20">
-                    <h2 className="text-2xl sm:text-3xl font-semibold text-black dark:text-white">
-                        FAQs
-                    </h2>
-
-                    <div className="mt-8 grid gap-4">
-                        {[
-                            {
-                                q: "Are your sneakers authentic?",
-                                a: "We focus on legitimate pairs and provide clear photos and details. If you have questions before buying, reach out and we’ll help.",
-                            },
-                            {
-                                q: "How do I know the condition?",
-                                a: "Each listing includes photos and a description. We aim for clear, consistent condition notes so you can buy confidently.",
-                            },
-                            {
-                                q: "Where can I find shipping/returns info?",
-                                a: "All details are listed on the Policies page.",
-                            },
-                        ].map((item) => (
-                            <div
-                                key={item.q}
-                                className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
-                            >
-                                <div className="text-base font-semibold text-black dark:text-white">
-                                    {item.q}
-                                </div>
-                                <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                                    {item.a}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                </section> */}
 
                 {/* CTA */}
                 <section className="mt-14 sm:mt-20">
