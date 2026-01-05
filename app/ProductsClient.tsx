@@ -60,22 +60,22 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     }, [products, pageTypes, searchTerm]);
 
     // ✅ Type filter for search results only (All by default)
-const typeOptions = useMemo(
-  () => [
-    { label: "All", value: "all" as const },
-    { label: "Sneakers", value: "product" as const },
-    { label: "Clothing", value: "clothing" as const },
-    { label: "Accessories", value: "accessories" as const },
-  ],
-  []
-);
+    const typeOptions = useMemo(
+        () => [
+            { label: "All", value: "all" as const },
+            { label: "Sneakers", value: "product" as const },
+            { label: "Clothing", value: "clothing" as const },
+            { label: "Accessories", value: "accessories" as const },
+        ],
+        []
+    );
 
-const [typeFilter, setTypeFilter] = useState<"all" | "product" | "clothing" | "accessories">("all");
+    const [typeFilter, setTypeFilter] = useState<"all" | "product" | "clothing" | "accessories">("all");
 
-// Optional: when user clears/changes search, reset to All
-useEffect(() => {
-  if (!searchTerm) setTypeFilter("all");
-}, [searchTerm]);
+    // Optional: when user clears/changes search, reset to All
+    useEffect(() => {
+        if (!searchTerm) setTypeFilter("all");
+    }, [searchTerm]);
 
 
 
@@ -220,9 +220,9 @@ useEffect(() => {
         let list = scopedProducts.filter((p) => {
 
             // ✅ Type filter (only when searching)
-if (tokens.length && typeFilter !== "all") {
-  if (p._type !== typeFilter) return false;
-}
+            if (tokens.length && typeFilter !== "all") {
+                if (p._type !== typeFilter) return false;
+            }
 
 
             // Status filter (default: Available)
@@ -443,9 +443,9 @@ if (tokens.length && typeFilter !== "all") {
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black">
-            <main className="mx-auto w-full max-w-6xl pt-8 pb-20 px-4 sm:px-6 lg:px-8">
+            <main className="mx-auto w-full max-w-6xl pt-4 pb-20 px-4 sm:px-6 lg:px-8">
                 {/* MOBILE TOP BAR */}
-                <div className="mb-6 flex items-center gap-3 md:hidden">
+                <div className="mb-2 flex items-center gap-3 md:hidden">
                     <button
                         type="button"
                         onClick={openMobileDrawer}
@@ -566,26 +566,26 @@ if (tokens.length && typeFilter !== "all") {
                         </div>
 
                         {/* ✅ Type filter pills (only during search) */}
-<div className="mt-3 flex flex-wrap gap-2">
-  {typeOptions.map((opt) => {
-    const active = typeFilter === opt.value;
-    return (
-      <button
-        key={opt.value}
-        type="button"
-        onClick={() => setTypeFilter(opt.value)}
-        className={[
-          "rounded-full px-3 py-1 text-sm border transition",
-          active
-            ? "border-black bg-black text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-black"
-            : "border-zinc-300 bg-white text-black hover:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50",
-        ].join(" ")}
-      >
-        {opt.label}
-      </button>
-    );
-  })}
-</div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {typeOptions.map((opt) => {
+                                const active = typeFilter === opt.value;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setTypeFilter(opt.value)}
+                                        className={[
+                                            "rounded-full px-3 py-1 text-sm border transition",
+                                            active
+                                                ? "border-black bg-black text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-black"
+                                                : "border-zinc-300 bg-white text-black hover:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50",
+                                        ].join(" ")}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
 
                         {filteredAndSorted.length === 0 && (

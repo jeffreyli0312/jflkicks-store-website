@@ -102,7 +102,7 @@ export default function Banner() {
 
   return (
     <header className="w-full bg-black border-b border-zinc-800">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <div className="relative flex items-center justify-center">
           <Link href="/" className="flex justify-center">
             <Image src="/icon.png" alt="My Store" width={200} height={200} priority />
@@ -135,7 +135,7 @@ export default function Banner() {
         </div>
 
         {/* Navigation (desktop) */}
-        <nav className="mt-2 flex justify-center gap-6 sm:gap-10 md:gap-16 text-lg sm:text-xl md:text-2xl font-semibold text-zinc-300">
+        <nav className="mt-0 flex justify-center gap-6 sm:gap-10 md:gap-16 text-lg sm:text-xl md:text-2xl font-semibold text-zinc-300">
           <Link
             href="/"
             className={`pb-3 transition ${pathname === "/"
