@@ -41,8 +41,24 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-
     const searchTerm = (searchParams.get("q") ?? "").trim();
+
+    // ✅ Determine which types this page should show by default
+const pageTypes = useMemo(() => {
+  if (pathname === "/") return ["product"];
+  if (pathname.startsWith("/clothing")) return ["clothing"];
+  if (pathname.startsWith("/accessories")) return ["accessories"];
+
+  // fallback (safe)
+  return ["product"];
+}, [pathname]);
+
+// ✅ If searching, allow ALL types. Otherwise, only show this page’s type(s).
+const scopedProducts = useMemo(() => {
+  if (searchTerm) return products;
+  return products.filter((p) => pageTypes.includes(p._type));
+}, [products, pageTypes, searchTerm]);
+
 
     function clearSearchParam() {
         const next = new URLSearchParams(searchParams.toString());
@@ -51,20 +67,21 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         router.replace(qs ? `${pathname}?${qs}` : pathname);
     }
 
-
-
     const brandOptions = useMemo(
-        () => uniqSorted(products.map((p) => p.brand)),
-        [products]
-    );
-    const conditionOptions = useMemo(
-        () => uniqSorted(products.map((p) => p.condition)),
-        [products]
-    );
-    const sizeOptions = useMemo(
-        () => uniqSorted(products.map((p) => String(p.size))),
-        [products]
-    );
+  () => uniqSorted(scopedProducts.map((p) => p.brand)),
+  [scopedProducts]
+);
+
+const conditionOptions = useMemo(
+  () => uniqSorted(scopedProducts.map((p) => p.condition)),
+  [scopedProducts]
+);
+
+const sizeOptions = useMemo(
+  () => uniqSorted(scopedProducts.map((p) => String(p.size))),
+  [scopedProducts]
+);
+
 
     // ------------------ APPLIED FILTERS ------------------
     const [brands, setBrands] = useState<(string | number)[]>([]);
@@ -181,7 +198,8 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         const tokens = tokenize(searchTerm);
 
         // Filter first
-        let list = products.filter((p) => {
+        let list = scopedProducts.filter((p) => {
+
             // Status filter (default: Available)
             if (statuses.length) {
                 const isSold = !!p.sold;
@@ -247,7 +265,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
         return list;
 
-    }, [products, brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
+    }, [scopedProducts, brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
 
     const hasAnyFilters =
         !(statuses.length === 1 && statuses[0] === "Available") ||
