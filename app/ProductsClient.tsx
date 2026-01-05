@@ -452,7 +452,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                         className="inline-flex items-center justify-center rounded-md px-4 py-2
               text-black dark:text-zinc-50 transition-opacity hover:opacity-70"
                     >
-                        <span className="inline-flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1">
                             <SlidersHorizontal className="h-4 w-4" />
                             <span className="text-[16px] font-medium">
                                 Filter{mobileAppliedCount ? ` (${mobileAppliedCount})` : ""}
