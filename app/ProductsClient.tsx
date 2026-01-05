@@ -443,7 +443,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black">
-            <main className="mx-auto w-full max-w-6xl pt-4 pb-20 px-4 sm:px-6 lg:px-8">
+            <main className="mx-auto w-full max-w-6xl pt-3 pb-20 px-4 sm:px-6 lg:px-8">
                 {/* MOBILE TOP BAR */}
                 <div className="mb-2 flex items-center gap-3 md:hidden">
                     <button
