@@ -44,20 +44,39 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     const searchTerm = (searchParams.get("q") ?? "").trim();
 
     // ✅ Determine which types this page should show by default
-const pageTypes = useMemo(() => {
-  if (pathname === "/") return ["product"];
-  if (pathname.startsWith("/clothing")) return ["clothing"];
-  if (pathname.startsWith("/accessories")) return ["accessories"];
+    const pageTypes = useMemo(() => {
+        if (pathname === "/") return ["product"];
+        if (pathname.startsWith("/clothing")) return ["clothing"];
+        if (pathname.startsWith("/accessories")) return ["accessories"];
 
-  // fallback (safe)
-  return ["product"];
-}, [pathname]);
+        // fallback (safe)
+        return ["product"];
+    }, [pathname]);
 
-// ✅ If searching, allow ALL types. Otherwise, only show this page’s type(s).
-const scopedProducts = useMemo(() => {
-  if (searchTerm) return products;
-  return products.filter((p) => pageTypes.includes(p._type));
-}, [products, pageTypes, searchTerm]);
+    // ✅ If searching, allow ALL types. Otherwise, only show this page’s type(s).
+    const scopedProducts = useMemo(() => {
+        if (searchTerm) return products;
+        return products.filter((p) => pageTypes.includes(p._type));
+    }, [products, pageTypes, searchTerm]);
+
+    // ✅ Type filter for search results only (All by default)
+const typeOptions = useMemo(
+  () => [
+    { label: "All", value: "all" as const },
+    { label: "Sneakers", value: "product" as const },
+    { label: "Clothing", value: "clothing" as const },
+    { label: "Accessories", value: "accessories" as const },
+  ],
+  []
+);
+
+const [typeFilter, setTypeFilter] = useState<"all" | "product" | "clothing" | "accessories">("all");
+
+// Optional: when user clears/changes search, reset to All
+useEffect(() => {
+  if (!searchTerm) setTypeFilter("all");
+}, [searchTerm]);
+
 
 
     function clearSearchParam() {
@@ -68,19 +87,19 @@ const scopedProducts = useMemo(() => {
     }
 
     const brandOptions = useMemo(
-  () => uniqSorted(scopedProducts.map((p) => p.brand)),
-  [scopedProducts]
-);
+        () => uniqSorted(scopedProducts.map((p) => p.brand)),
+        [scopedProducts]
+    );
 
-const conditionOptions = useMemo(
-  () => uniqSorted(scopedProducts.map((p) => p.condition)),
-  [scopedProducts]
-);
+    const conditionOptions = useMemo(
+        () => uniqSorted(scopedProducts.map((p) => p.condition)),
+        [scopedProducts]
+    );
 
-const sizeOptions = useMemo(
-  () => uniqSorted(scopedProducts.map((p) => String(p.size))),
-  [scopedProducts]
-);
+    const sizeOptions = useMemo(
+        () => uniqSorted(scopedProducts.map((p) => String(p.size))),
+        [scopedProducts]
+    );
 
 
     // ------------------ APPLIED FILTERS ------------------
@@ -98,7 +117,7 @@ const sizeOptions = useMemo(
     const [animationKey, setAnimationKey] = useState(0);
     useEffect(() => {
         setAnimationKey((k) => k + 1);
-    }, [brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
+    }, [brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm, typeFilter]);
 
 
     function normalize(s: string) {
@@ -200,6 +219,12 @@ const sizeOptions = useMemo(
         // Filter first
         let list = scopedProducts.filter((p) => {
 
+            // ✅ Type filter (only when searching)
+if (tokens.length && typeFilter !== "all") {
+  if (p._type !== typeFilter) return false;
+}
+
+
             // Status filter (default: Available)
             if (statuses.length) {
                 const isSold = !!p.sold;
@@ -265,7 +290,7 @@ const sizeOptions = useMemo(
 
         return list;
 
-    }, [scopedProducts, brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm]);
+    }, [scopedProducts, brands, conditions, sizes, statuses, minPrice, maxPrice, sort, searchTerm, typeFilter]);
 
     const hasAnyFilters =
         !(statuses.length === 1 && statuses[0] === "Available") ||
@@ -283,6 +308,7 @@ const sizeOptions = useMemo(
         setSizes([]);
         setMinPrice("");
         setMaxPrice("");
+        setTypeFilter("all");
     }
 
     // ------------------ MOBILE DRAWER (DRAFT) ------------------
@@ -538,6 +564,29 @@ const sizeOptions = useMemo(
                                 Remove
                             </button>
                         </div>
+
+                        {/* ✅ Type filter pills (only during search) */}
+<div className="mt-3 flex flex-wrap gap-2">
+  {typeOptions.map((opt) => {
+    const active = typeFilter === opt.value;
+    return (
+      <button
+        key={opt.value}
+        type="button"
+        onClick={() => setTypeFilter(opt.value)}
+        className={[
+          "rounded-full px-3 py-1 text-sm border transition",
+          active
+            ? "border-black bg-black text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-black"
+            : "border-zinc-300 bg-white text-black hover:opacity-70 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50",
+        ].join(" ")}
+      >
+        {opt.label}
+      </button>
+    );
+  })}
+</div>
+
 
                         {filteredAndSorted.length === 0 && (
                             <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
