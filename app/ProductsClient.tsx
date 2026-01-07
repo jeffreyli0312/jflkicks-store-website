@@ -454,7 +454,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     >
                         <span className="inline-flex items-center gap-1">
                             <SlidersHorizontal className="h-4 w-4" />
-                            <span className="text-[16px] font-medium">
+                            <span className="text-[16px] font-light">
                                 Filter{mobileAppliedCount ? ` (${mobileAppliedCount})` : ""}
                             </span>
                         </span>
