@@ -46,3 +46,22 @@ Designed for performance, scalability, and real-time content updates.
 ---
 
 ## 📂 Project Structure
+
+app/
+├── about/
+├── accessories/
+│ ├── [slug]/ # dynamic product pages
+│ └── page.tsx
+├── clothing/
+│ ├── [slug]/
+│ └── page.tsx
+├── components/
+│ ├── Banner.tsx
+│ ├── Footer.tsx
+│ └── products/
+├── layout.tsx
+└── page.tsx # homepage
+
+sanity/ # CMS schemas & config
+public/ # static assets
+Images/ # local images
